@@ -1,124 +1,99 @@
-@Library('Shared') _
-
 pipeline {
-    agent any
-    
+  
+  agent any;
+  
     environment {
-        // Update the main app image name to match the deployment file
-        DOCKER_IMAGE_NAME = 'laxg66/easyshop-app'
-        DOCKER_MIGRATION_IMAGE_NAME = 'laxg66/easyshop-migration'
-        DOCKER_IMAGE_TAG = "${BUILD_NUMBER}"
-        GITHUB_CREDENTIALS = credentials('github-credentials')
-        GIT_BRANCH = "master"
+        DOCKER_IMAGE_NAME = "easyshop-mainapp"
+        DOCKER_MIGRATION_IMAGE_NAME = "easyshop-migration"
+        IMAGE_TAG = "${BUILD_NUMBER}"
+        
     }
-    
+
+
     stages {
-        stage('Cleanup Workspace') {
+        
+        stage('Clean Workspace'){
+            steps{
+                cleanWs()
+                echo "Workspace cleaned succesfully"
+            }
+        }
+        stage('Checkout') {
             steps {
-                script {
-                    clean_ws()
-                }
+                echo "Cloning Repo code"
+                git branch: 'master', url: 'https://github.com/devopsdock0125/tws-e-commerce-app_hackathon.git'
+                sh 'pwd'
+                sh 'ls -la'
             }
         }
         
-        stage('Clone Repository') {
-            steps {
-                script {
-                    clone("https://github.com/lax66/tws-e-commerce-app_hackathon.git","master")
+        stage('SonarQube Analysis'){
+            environment{
+                scannerHome = tool 'SonarServer'
+            }
+            steps{
+                withSonarQubeEnv(credentialsId: 'Sonar-Token', installationName: 'SonarQube Server') {
+                sh """
+                ${scannerHome}/bin/sonar-scanner \
+                -Dsonar.projectKey=easyshop \
+                -Dsonar.projectName="easyshop" \
+                 -Dsonar.sources=.
+    """
                 }
+                    
             }
         }
-        
-        stage('Build Docker Images') {
+
+        stage('Build Docker Image') {
             parallel {
                 stage('Build Main App Image') {
                     steps {
-                        script {
-                            docker_build(
-                                imageName: env.DOCKER_IMAGE_NAME,
-                                imageTag: env.DOCKER_IMAGE_TAG,
-                                dockerfile: 'Dockerfile',
-                                context: '.'
-                            )
+                        echo "Starting to build Main App docker image"
+                        script{
+                            def dockerfile = 'Dockerfile'
+                            docker.build("${DOCKER_IMAGE_NAME}:${IMAGE_TAG}","-f ${dockerfile} .")
+                             
                         }
                     }
                 }
-                
                 stage('Build Migration Image') {
                     steps {
-                        script {
-                            docker_build(
-                                imageName: env.DOCKER_MIGRATION_IMAGE_NAME,
-                                imageTag: env.DOCKER_IMAGE_TAG,
-                                dockerfile: 'scripts/Dockerfile.migration',
-                                context: '.'
-                            )
+                        echo "Starting to build Migration image"
+                        script{
+                            def dockerfile = "scripts/Dockerfile.migration"
+                            docker.build("${DOCKER_MIGRATION_IMAGE_NAME}:${IMAGE_TAG}","-f ${dockerfile} .")
                         }
                     }
                 }
             }
         }
         
-        stage('Run Unit Tests') {
-            steps {
-                script {
-                    run_tests()
+        stage('Push Image to DockerHub'){
+            parallel{
+                stage('DockerHub-login'){
+                    steps{
+                        withcredentials([usernamePassword(credentialsID: "dockerhub-token" ,usernameVariable:"DOCKERHUB_USERNAME", passwordVariable: "DOCKERHUB_PASSWORD")])
+                        sh "docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD"
+                        echo "Login Complete"
+                    }
                 }
-            }
-        }
-        
-        stage('Security Scan with Trivy') {
-            steps {
-                script {
-                    // Create directory for results
-                  
-                    trivy_scan()
+                stage('Push Main App Image'){
+                    steps{
+                        sh "docker image tag ${MainAppImage} ${DOCKERHUB_USERNAME}/${MainAppImage}"
+                        sh "docker push image $MainAppImage"
+                    }
+                }
                     
-                }
-            }
-        }
-        
-        stage('Push Docker Images') {
-            parallel {
-                stage('Push Main App Image') {
-                    steps {
-                        script {
-                            docker_push(
-                                imageName: env.DOCKER_IMAGE_NAME,
-                                imageTag: env.DOCKER_IMAGE_TAG,
-                                credentials: 'docker-hub-credentials'
-                            )
-                        }
-                    }
-                }
-                
-                stage('Push Migration Image') {
-                    steps {
-                        script {
-                            docker_push(
-                                imageName: env.DOCKER_MIGRATION_IMAGE_NAME,
-                                imageTag: env.DOCKER_IMAGE_TAG,
-                                credentials: 'docker-hub-credentials'
-                            )
-                        }
+                stage('Push Migration Image'){
+                    steps{
+                        sh "docker image tag ${MigrationImage} ${DOCKERHUB_USERNAME}/${MigrationImage}"
+                        sh "docker push image $MigrationImange"
+                        
                     }
                 }
             }
         }
-        
-        // Add this new stage
-        stage('Update Kubernetes Manifests') {
-            steps {
-                script {
-                    update_k8s_manifests(
-                        imageTag: env.DOCKER_IMAGE_TAG,
-                        manifestsPath: 'kubernetes',
-                        gitCredentials: 'github-credentials',
-                        gitUserName: 'Jenkins CI',
-                        gitUserEmail: 'misc.lucky66@gmail.com'
-                    )
-                }
-            }
-        }
-    }
+    
+    
+}
 }
