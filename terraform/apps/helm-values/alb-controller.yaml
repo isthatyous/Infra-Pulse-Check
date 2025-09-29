@@ -12,7 +12,7 @@ image:
   pullPolicy: IfNotPresent
 
 runtimeClassName: ""
-imagePullSecrets: []
+imagePullSecrets: [
 nameOverride: ""
 fullnameOverride: ""
 
