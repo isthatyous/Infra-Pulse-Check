@@ -1,0 +1,17 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-migration-job
+  namespace: easyshop
+spec:
+  template:
+    spec:
+      containers:
+      - name: db-migration
+        image: isthatyou/easyshop-migration:latest
+        imagePullPolicy: Always
+        env:
+        - name: MONGODB_URI
+          value: mongodb://mongodb-svc:27017/easyshop
+      restartPolicy: onFailure
+  
