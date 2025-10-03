@@ -6,6 +6,8 @@ metadata:
   labels:
     app: mongodb
 spec:
-  type: NodePort
+  ports:
+    - port: 27017
+      targetPort: 27017
   selector:
     app: mongodb
