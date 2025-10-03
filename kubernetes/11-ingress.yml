@@ -12,7 +12,6 @@ metadata:
     alb.ingress.kubernetes.io/ssl-redirect: '443'
     kubernetes.io/ingress.class: alb
 spec:
-  ingressClassName: nginx-example
   rules:
   - host: easyshop.shivamcodes.me
     http:
