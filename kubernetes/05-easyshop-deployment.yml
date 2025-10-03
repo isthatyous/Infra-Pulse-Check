@@ -21,6 +21,11 @@ spec:
         imagePullPolicy: Always 
         ports:
         - containerPort: 3000
+        envFrom:
+            - configMapRef:
+                name: easyshop-config
+            - secretRef:
+                name: easyshop-secrets
         env:
         - name: NEXTAUTH_URL
           valueFrom:

@@ -8,7 +8,6 @@ spec:
   accessModes:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
-  storageClassName: local-storage
   hostPath:
     path: /mnt/data/mongodb
   
