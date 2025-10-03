@@ -22,7 +22,7 @@ spec:
         ports:
         - containerPort: 27017
         volumeMounts:
-        - name: mongodb-storage
+        - name: mongodb-storage 
           mountPath: /data/db
         resources:
             requests:
