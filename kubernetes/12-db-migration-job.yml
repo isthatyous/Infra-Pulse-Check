@@ -16,8 +16,4 @@ spec:
           value: mongodb://mongodb-svc:27017/easyshop
       restartPolicy: onFailure
   
-<<<<<<< HEAD
 
-=======
- 
->>>>>>> bfc2cd8 (update k8s manifest file)
