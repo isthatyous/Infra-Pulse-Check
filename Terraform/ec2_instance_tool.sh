@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Install java 
-sudo apt update
-sudo apt install fontconfig openjdk-21-jre
+sudo apt update 
+sudo apt install -y fontconfig openjdk-17-jre
 
 
 
@@ -13,7 +13,7 @@ echo "deb [signed-by=/etc/apt/keyrings/jenkins-keyring.asc]" \
   https://pkg.jenkins.io/debian-stable binary/ | sudo tee \
   /etc/apt/sources.list.d/jenkins.list > /dev/null
 sudo apt-get update
-sudo apt-get install jenkins
+sudo apt-get -y install jenkins
 
 # start jenikns
 sudo systemctl start jenkins
@@ -25,7 +25,7 @@ sudo apt-get install docker.io -y
 
 
 # user group permissions
-sudo usermod -aG docker $user 
+sudo usermod -aG docker ubuntu 
 sudo usermod -aG docker jenkins
 
 
@@ -37,14 +37,19 @@ sudo systemctl restart jenkins
 sudo apt-get install wget apt-transport-https gnupg lsb-release
 wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
 echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee -a /etc/apt/sources.list.d/trivy.list
-sudo apt-get update
-sudo apt-get install trivy
+sudo apt-get update -y
+sudo apt-get install trivy -y
 
-# Install SonarQube
-sudo apt-get install wget unzip
-wget https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-9.9.0.65466.zip
-sudo unzip sonarqube-9.9.0.65466.zip -d /opt/
-sudo mv /opt/sonarqube-9.9.0.65466 /opt/sonarqube
+# Install SonarQubess
+sudo docker run -d \
+  --name sonarqube \
+  -p 9000:9000 \
+  -v sonarqube_data:/opt/sonarqube/data \
+  -v sonarqube_logs:/opt/sonarqube/logs \
+  -v sonarqube_extensions:/opt/sonarqube/extensions \
+  -e SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true \
+  sonarqube:community
+
 
 
 # Install AWS CLI

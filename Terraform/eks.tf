@@ -1,17 +1,17 @@
-# Security Group for Remote Access (SSH)
+# Security Group for Remote Access (SSH) --> Only bastion can access node group
 resource "aws_security_group" "node_group_remote_access" {
   name        = "allow-SSH"
   description = "Allow SSH access from your IP"
   vpc_id      = module.vpc.vpc_id
-
+  
   ingress {
-    description = "Allow SSH"
+    description = "port 22 allow"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] 
+    cidr_blocks = ["0.0.0.0/0"]
   }
-
+  
   egress {
     description = "Allow all outgoing traffic"
     from_port   = 0
@@ -28,17 +28,20 @@ module "eks" {
 
   name                    = local.name
   kubernetes_version      = "1.33"
-  endpoint_public_access  = false # API server not accessible from Internet
+  endpoint_public_access  = false # API server not accessible from Internet if false need bation to talk to API server
   endpoint_private_access = true
+  enable_cluster_creator_admin_permissions = false
 
-  # Access entry for IAM User (extra authentication layer)
+  
+
+  # Access entry for any specific user or role (jenkins controller instance)(extra authentication layer)
   access_entries = {
     example = {
-      principal_arn = "arn:aws:iam::339713072285:user/Shivam"
+      principal_arn = "arn:aws:iam::593793051211:user/Shivam"
 
       policy_associations = {
         example = {
-          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
           access_scope = {
             type = "cluster"
           }
@@ -51,6 +54,7 @@ module "eks" {
   security_group_additional_rules = {
     access_for_bastion_jenkins_hosts = {
       cidr_blocks = ["0.0.0.0/0"]
+      # source_security_group_ids = [aws_security_group.bastion_sg.id, aws_security_group.allow_tls.id]
       description = "Allow all HTTPS traffic from Jenkins and Bastion host"
       from_port   = 443
       to_port     = 443
@@ -69,6 +73,7 @@ module "eks" {
     }
     vpc-cni = {
       most_recent = true
+      before_compute = true # Ensures CNI is ready before nodes start
     }
   }
 
@@ -80,10 +85,11 @@ module "eks" {
   # EKS Managed Node Group(s)
   eks_managed_node_groups = {
     easy-shop-ng = {
-    ami_id                             = "ami-02d26659fd82cf299"
-    instance_types                     = ["t3.large"]
-    attach_cluster_primary_security_group = true
+      ami_type       = "AL2023_x86_64_STANDARD"
+      instance_types                        = ["t3.large"]
+      attach_cluster_primary_security_group = true
 
+      # iam_role_arn = "arn:aws:iam::593793051211:role/eksNodeInstanceRole"
 
       min_size     = 1
       max_size     = 3
@@ -115,7 +121,7 @@ data "aws_instances" "eks_nodes" {
   }
 
   filter {
-    name   = "instance_state"
+    name   = "instance-state-name"
     values = ["running"]
   }
 

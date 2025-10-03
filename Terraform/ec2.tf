@@ -7,16 +7,17 @@ data "aws_ami" "os_image" {
   }
   filter {
     name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
+    //values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
+     values = ["ubuntu/images/hvm-ssd-gp3/*24.04-amd64*"]
   }
 }
-
+   
 
 resource "aws_key_pair" "deployer" {
-  key_name = "deployer-key"
+  key_name = "terra-automate-key"
   public_key = file("terra-key.pub")
 }
-
+  
 
 # Security Group for Remote Access (SSH)
 resource "aws_security_group" "allow_tls" {
@@ -29,7 +30,8 @@ resource "aws_security_group" "allow_tls" {
       { description = "port 22 allow", from = 22, to = 22, protocol = "tcp", cidr = ["0.0.0.0/0"] },
       { description = "port 80 allow", from = 80, to = 80, protocol = "tcp", cidr = ["0.0.0.0/0"] },
       { description = "port 443 allow", from = 443, to = 443, protocol = "tcp", cidr = ["0.0.0.0/0"] },
-      { description = "port 8080 allow", from = 8080, to = 8080, protocol = "tcp", cidr = ["0.0.0.0/0"] }
+      { description = "port 8080 allow", from = 8080, to = 8080, protocol = "tcp", cidr = ["0.0.0.0/0"] },
+      { description = "port 9000 allow", from = 9000, to = 9000, protocol = "tcp", cidr = ["0.0.0.0/0"] }
     ]
     content {
       description = ingress.value.description
@@ -56,12 +58,11 @@ resource "aws_security_group" "allow_tls" {
 
 resource "aws_instance" "ec2_instance" {
   ami = data.aws_ami.os_image.id
-# ami = "ami-02d26659fd82cf299"
+  instance_type = "t3.large"
   key_name = aws_key_pair.deployer.key_name
-  instance_type = "t3.micro"
   vpc_security_group_ids = [aws_security_group.allow_tls.id]
   subnet_id = module.vpc.public_subnets[0]
-  user_data = file("ec2_instance_tool.sh")
+  user_data = file("${path.module}/ec2_instance_tool.sh")
 
   root_block_device {
     volume_size = 20

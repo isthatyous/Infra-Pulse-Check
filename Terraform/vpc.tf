@@ -11,6 +11,18 @@ module "vpc" {
   single_nat_gateway = true   # 
   one_nat_gateway_per_az = false # NAT gateway per AZs cost more but highly available
 
+  public_subnet_tags = {
+    "kubernetes.io/role/elb" = 1
+  }
+
+  private_subnet_tags = {
+    "kubernetes.io/role/internal-elb" = 1
+  }
+
+
+# Ensure public subnets auto-assign public IPs
+  map_public_ip_on_launch = true
+
   tags = {
     name = local.name
     Environment = local.env

@@ -8,4 +8,4 @@ sudo snap install aws-cli --classic
 # install kubectl
 sudo snap install kubectl --classic
 # install helm
-sudo snap install helm --classic
+sudo snap install helm --classic  

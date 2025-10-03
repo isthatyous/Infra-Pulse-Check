@@ -34,13 +34,13 @@ resource "aws_security_group" "bastion_sg" {
 
 
 resource "aws_instance" "bastion_host" {
-  ami                         = var.bastion_ami
+  ami                         = data.aws_ami.os_image.id
   instance_type               = var.bastion_instance_type
   key_name                    = aws_key_pair.deployer.key_name
   subnet_id                   = module.vpc.public_subnets[0]
   vpc_security_group_ids      = [aws_security_group.bastion_sg.id]
   user_data = file("${path.module}/bastion_user_script.sh")
-tags = {
+  tags = {
     Name = "Bastion-Host"
   }
   root_block_device {
