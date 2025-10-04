@@ -9,7 +9,7 @@ spec:
     spec:
       containers:
       - name: db-migration
-        image: isthatyou/easyshop-migration:latest
+        image: isthatyou/easyshop-migration:19
         imagePullPolicy: Always
         env:
         - name: MONGODB_URI
