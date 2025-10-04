@@ -1,4 +1,3 @@
-
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -6,6 +5,8 @@ metadata:
   namespace: easyshop
 spec:
   template:
+    metadata:
+      name: db-migration
     spec:
       containers:
       - name: db-migration
@@ -14,6 +15,4 @@ spec:
         env:
         - name: MONGODB_URI
           value: "mongodb://mongodb-svc:27017/easyshop"
-      restartPolicy: onFailure
-  
-
+      restartPolicy: OnFailure
