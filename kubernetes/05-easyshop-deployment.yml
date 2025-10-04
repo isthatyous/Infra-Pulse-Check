@@ -25,7 +25,7 @@ spec:
             - configMapRef:
                 name: easyshop-config
             - secretRef:
-                name: easyshop-secrets
+                name: easyshop-secret
         env:
         - name: NEXTAUTH_URL
           valueFrom:
