@@ -22,53 +22,48 @@ spec:
         ports:
         - containerPort: 3000
         envFrom:
-            - configMapRef:
-                name: easyshop-config
-            - secretRef:
-                name: easyshop-secret
+        - configMapRef:
+            name: easyshop-config
+        - secretRef:
+            name: easyshop-secret
         env:
         - name: NEXTAUTH_URL
           valueFrom:
-          configMapKeyRef:
-            name: easyshop-config
-            key: NEXTAUTH_URL
-
+            configMapKeyRef:
+              name: easyshop-config
+              key: NEXTAUTH_URL
         - name: NEXTAUTH_SECRET
           valueFrom:
-          secretKeyRef:
-            name: easyshop-secret
-            key: NEXTAUTH_SECRET
- 
+            secretKeyRef:
+              name: easyshop-secret
+              key: NEXTAUTH_SECRET
         - name: JWT_SECRET
           valueFrom:
-          secretKeyRef:
-            name: easyshop-secret
-            key: JWT_SECRET
+            secretKeyRef:
+              name: easyshop-secret
+              key: JWT_SECRET
         resources:
-            requests:
-              memory: "256Mi"
-              cpu: "200m"
-            limits:
-              memory: "512Mi"
-              cpu: "500m"
-
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
         startupProbe:
           httpGet:
-          path: /
-          port: 3000
+            path: /
+            port: 3000
           periodSeconds: 10
           failureThreshold: 30
         readinessProbe:
-            httpGet: 
-              path: /
-              port: 3000
-            initialDelaySeconds: 20
-            periodSeconds: 15
+          httpGet: 
+            path: /
+            port: 3000
+          initialDelaySeconds: 20
+          periodSeconds: 15
         livenessProbe:
-            httpGet:
-              path: /
-              port: 3000
-            initialDelaySeconds: 25
-            periodSeconds: 20
-      
-      
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 25
+          periodSeconds: 20
