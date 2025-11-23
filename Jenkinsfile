@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    options {
+        cleanWs()
+        echo "Workspace cleaned successfully"
+    }
+
     environment {
         DOCKER_IMAGE_NAME = "easyshop-mainapp"
         DOCKER_MIGRATION_IMAGE_NAME = "easyshop-migration"
@@ -8,17 +13,6 @@ pipeline {
     }
 
     stages {
-        // stage('Clean Workspace') {
-        //     steps {
-        //         cleanWs()
-        //         echo "Workspace cleaned successfully"
-        //     }
-        // }
-        options {
-            // Automatically clean workspace before build starts
-            cleanWs()
-            echo "Workspace cleaned successfully"
-        }
 
         stage('Checkout') {
             steps {
@@ -78,25 +72,15 @@ pipeline {
                         sh "docker image tag ${DOCKER_IMAGE_NAME}:${IMAGE_TAG} ${mainImage}"
                         sh "docker push ${mainImage}"
                         sh "trivy image --format table -o trivy-report-mainapp.txt ${mainImage}"
-                        // slackUpload(
-                        //     channel: '#docker-image-scan',
-                        //     filePath: 'trivy-report-mainapp.html',
-                        //     initialComment: "🔍 Trivy Scan Report for *Main App Image*"
-                        // )
 
                         // Push Migration App
                         def migrationImage = "${DOCKERHUB_USERNAME}/${DOCKER_MIGRATION_IMAGE_NAME}:${IMAGE_TAG}"
                         sh "docker image tag ${DOCKER_MIGRATION_IMAGE_NAME}:${IMAGE_TAG} ${migrationImage}"
                         sh "docker push ${migrationImage}"
                         sh "trivy image --format table -o trivy-report-migrationapp.txt ${migrationImage}"
-                        // slackUpload(
-                        //     channel: '#docker-image-scan',
-                        //     filePath: 'trivy-report-migrationapp.html',
-                        //     initialComment: "🔍 Trivy Scan Report for *Migration App Image*"
-                        // )
-                    } // closes script
-                } // closes withCredentials
-            } // closes steps
-        } // closes Push Image stage
-    } // closes stages
-} // closes pipeline
+                    }
+                }
+            }
+        }
+    }
+}
