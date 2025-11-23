@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKER_IMAGE_NAME = "easyshop-mainapp"
         DOCKER_MIGRATION_IMAGE_NAME = "easyshop-migration"
-        IMAGE_TAG = "${BUILD_NUMBER}"
+        IMAGE_TAG = "${BUILD_NUMBER}" 
     }
 
     stages {
