@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    options {
-        cleanWs()
-    }
-
     environment {
         DOCKER_IMAGE_NAME = "easyshop-mainapp"
         DOCKER_MIGRATION_IMAGE_NAME = "easyshop-migration"
@@ -12,6 +8,12 @@ pipeline {
     }
 
     stages {
+
+        stage("Clean Workspace") {
+            steps {
+                cleanWs()
+            }
+        }
 
         stage('Checkout') {
             steps {
@@ -80,6 +82,13 @@ pipeline {
                     }
                 }
             }
+        }
+    }
+
+    post {
+        always {
+            echo "Cleanup complete"
+            cleanWs()
         }
     }
 }
