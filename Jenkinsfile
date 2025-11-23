@@ -4,7 +4,7 @@ pipeline {
     options {
         cleanWs()
         timestamps()
-        ansiColor('xterm')
+        ansiColor('xterm') 
     }
 
     environment {
